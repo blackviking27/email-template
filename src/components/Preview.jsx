@@ -7,69 +7,45 @@ import { Suspense, useContext, useEffect, useState } from "react";
 import { Body, Html } from "@react-email/components";
 import { Clipboard } from "react-feather";
 import dynamic from "next/dynamic";
-import { redirect } from "next/navigation";
-
-const Email = dynamic(
-  () => {
-    try {
-      console.log("window location", window.location);
-      return import(
-        /* webpackChunkName: "[request]" */ "@/app/templates/all/Email1.jsx"
-      );
-    } catch (err) {
-      console.log("Error");
-      return <div>ERROR!!!!</div>;
-    }
-  },
-  {
-    ssr: false,
-    // loading: () => (
-    //   <Progress
-    //     size="sm"
-    //     isIndeterminate
-    //     aria-label="Loading..."
-    //     className="max-w-md flex"
-    //   />
-    // ),
-  }
-);
+import { redirect, useRouter, usePathname } from "next/navigation";
 
 const Preview = ({ params }) => {
   const { state } = useContext(DataContext);
-  const [email, setEmail] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const pathName = usePathname();
 
-  // useEffect(() => {
-  //   const element = dynamic(
-  //     () => {
-  //       return import(
-  //         /* webpackChunkName: "[request]" */ "@/app/templates/all/Email1.jsx"
-  //       );
-  //     },
-  //     {
-  //       ssr: false,
-  //       // loading: () => (
-  //       //   <Progress
-  //       //     size="sm"
-  //       //     isIndeterminate
-  //       //     aria-label="Loading..."
-  //       //     className="max-w-md flex"
-  //       //   />
-  //       // ),
-  //     }
-  //   );
-  //   setEmail(element);
-  //   console.log("EMAIL >>>>", element);
+  const Email = dynamic(
+    () => {
+      // console.log("window location", window.location);
+      console.log("router >>>", pathName);
 
-  //   // setLoading(true);
-  //   // const importTemplate = async () => {
-  //   //   const element = (await import("@/app/templates/all/Email1")).default;
-  //   //   setEmail(element);
-  //   //   setLoading(false);
-  //   //   console.log("EMAIL >>>>", element);
-  //   // };
-  //   // importTemplate();
-  // }, []);
+      // getting the template name
+      let slug = pathName.split("/").at(-1);
+
+      // TODO: add the dynamic check for slug name
+      if (slug != "Email1") {
+        // path = "Email1";
+        console.log("redirecting");
+        return import(
+          /* webpackChunkName: "No_template_error" */ `@/components/Error.jsx`
+        );
+      } else {
+        return import(
+          /* webpackChunkName: "[request]" */ `@/app/templates/all/${slug}.jsx`
+        );
+      }
+    },
+    {
+      ssr: false,
+      loading: () => (
+        <Progress
+          size="sm"
+          isIndeterminate
+          aria-label="Loading..."
+          className="max-w-md flex"
+        />
+      ),
+    }
+  );
 
   const handleCopyToClipBoard = (element) => {
     const html = (
@@ -104,25 +80,6 @@ const Preview = ({ params }) => {
           Copy to Clipboard <Clipboard size={24} />
         </Button>
       </Suspense>
-      {/* {!loading && Email != null ? (
-        <>
-          <Email state={state} />
-          <Button
-            className="fixed bottom-4 right-8"
-            color="primary"
-            onClick={() => handleCopyToClipBoard(<Email state={state} />)}
-          >
-            Copy to Clipboard <Clipboard size={24} />
-          </Button>
-        </>
-      ) : (
-        <Progress
-          size="sm"
-          isIndeterminate
-          aria-label="Loading..."
-          className="max-w-md flex"
-        />
-      )} */}
     </div>
   );
 };
